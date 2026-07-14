@@ -46,6 +46,5 @@ jobs:
       - run: npm run smoke:package
         env:
           PYTHON: python
-      - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # npm uses GitHub Actions OIDC here; trusted publishing adds provenance automatically.
+      - run: npm publish --access public
