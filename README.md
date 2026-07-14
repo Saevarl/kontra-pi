@@ -23,11 +23,11 @@ measurement.
 ## Install
 
 Install Kontra in the Python environment used by your project, then install the
-Pi package from GitHub:
+Pi package:
 
 ```bash
 pip install "kontra>=0.13.0"
-pi install git:github.com/Saevarl/kontra-pi
+pi install npm:kontra-pi
 ```
 
 Or try it for one session:
