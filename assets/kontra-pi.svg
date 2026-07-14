@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">kontra-pi</title>
+  <desc id="desc">A geometric Pi mark measured by Kontra's dimension line.</desc>
+  <rect width="512" height="512" rx="112" fill="#2743F0"/>
+  <path fill="#fff" fill-rule="evenodd" d="M96 88h224v144h-72v72h-72v72H96V88Zm80 72v72h72v-72h-72Z"/>
+  <path fill="#fff" d="M320 232h96v144h-96z"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#2743F0" stroke-width="54">
+      <path d="M80 404h352"/>
+      <path d="M120 356 184 404 360 200"/>
+    </g>
+    <g stroke="#AFC0FF" stroke-width="36">
+      <path d="M80 404h352"/>
+      <path d="M80 372v64"/>
+      <path d="M432 372v64"/>
+      <path d="M120 356 184 404 360 200"/>
+    </g>
+  </g>
+  <circle cx="360" cy="200" r="26" fill="#fff"/>
+</svg>

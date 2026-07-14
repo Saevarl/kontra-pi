@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">kontra-pi monochrome</title>
+  <desc id="desc">Single-color Pi mark measured by Kontra's dimension line.</desc>
+  <style>
+    .m { fill: #111318; }
+    .s { fill: none; stroke: #111318; }
+    @media (prefers-color-scheme: dark) {
+      .m { fill: #f3f4f8; }
+      .s { stroke: #f3f4f8; }
+    }
+  </style>
+  <defs>
+    <mask id="groove" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="#fff"/>
+      <path d="M120 356 184 404 360 200" fill="none" stroke="#000" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g class="m" mask="url(#groove)">
+    <path fill-rule="evenodd" d="M96 88h224v144h-72v72h-72v72H96V88Zm80 72v72h72v-72h-72Z"/>
+    <path d="M320 232h96v144h-96z"/>
+  </g>
+  <g class="s" stroke-width="36" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M80 404h352"/>
+    <path d="M80 372v64"/>
+    <path d="M432 372v64"/>
+    <path d="M120 356 184 404 360 200"/>
+  </g>
+  <circle class="m" cx="360" cy="200" r="26"/>
+</svg>

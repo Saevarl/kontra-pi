@@ -1,0 +1,16 @@
+{
+  "python": ".venv/bin/python",
+  "allowOutsideProject": false,
+  "allowRemoteSources": false,
+  "timeoutMs": 120000,
+  "gate": {
+    "enabled": false,
+    "contracts": ["contracts/users.yml"],
+    "include": ["src/**", "models/**", "pipelines/**"],
+    "afterBash": false,
+    "tally": false,
+    "sample": 0,
+    "save": true,
+    "continueOnFailure": false
+  }
+}

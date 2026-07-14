@@ -1,0 +1,8 @@
+node_modules/
+__pycache__/
+*.py[cod]
+*.tgz
+.DS_Store
+coverage/
+/LAUNCH.md
+/RESEARCH.md

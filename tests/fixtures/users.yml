@@ -1,0 +1,9 @@
+name: users
+datasource: tests/fixtures/users.csv
+rules:
+  - name: not_null
+    params: { column: user_id }
+  - name: unique
+    params: { column: email }
+  - name: range
+    params: { column: age, min: 0, max: 120 }

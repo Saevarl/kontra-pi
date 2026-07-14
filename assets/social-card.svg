@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">kontra-pi</title>
+  <desc id="desc">Native Kontra data-quality measurements for Pi.</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#2743F0" stroke-opacity=".10"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="640" fill="#0E1017"/>
+  <rect width="1280" height="640" fill="url(#grid)"/>
+  <g transform="translate(112 112) scale(.8125)">
+    <rect width="512" height="512" rx="112" fill="#2743F0"/>
+    <path fill="#fff" fill-rule="evenodd" d="M96 88h224v144h-72v72h-72v72H96V88Zm80 72v72h72v-72h-72Z"/>
+    <path fill="#fff" d="M320 232h96v144h-96z"/>
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <g stroke="#2743F0" stroke-width="54">
+        <path d="M80 404h352"/>
+        <path d="M120 356 184 404 360 200"/>
+      </g>
+      <g stroke="#AFC0FF" stroke-width="36">
+        <path d="M80 404h352"/>
+        <path d="M80 372v64"/>
+        <path d="M432 372v64"/>
+        <path d="M120 356 184 404 360 200"/>
+      </g>
+    </g>
+    <circle cx="360" cy="200" r="26" fill="#fff"/>
+  </g>
+  <text x="592" y="278" fill="#F4F5F8" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="88" font-weight="700" letter-spacing="-4">kontra-pi</text>
+  <text x="600" y="348" fill="#A8ADBC" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="25">data-quality measurements for Pi</text>
+  <path d="M600 398h470" stroke="#2B3040" stroke-width="2"/>
+  <text x="600" y="453" fill="#6B82FF" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="22">validate · profile · compare · diff</text>
+</svg>

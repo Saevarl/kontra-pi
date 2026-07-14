@@ -1,0 +1,61 @@
+{
+  "name": "kontra-pi",
+  "version": "0.1.0",
+  "description": "Native Kontra data-quality probes for Pi",
+  "homepage": "https://github.com/Saevarl/kontra-pi#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saevarl/kontra-pi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Saevarl/kontra-pi/issues"
+  },
+  "type": "module",
+  "license": "Apache-2.0",
+  "keywords": [
+    "pi-package",
+    "pi-coding-agent",
+    "kontra",
+    "data-quality",
+    "data-engineering"
+  ],
+  "files": [
+    "bridge/bridge.py",
+    "extensions/*.ts",
+    "skills/kontra/SKILL.md",
+    "examples/kontra.json",
+    "assets/*.svg",
+    "docs/*.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "DESIGN.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": ["./extensions/index.ts"],
+    "skills": ["./skills"]
+  },
+  "scripts": {
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": ">=0.80.0",
+    "@earendil-works/pi-tui": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "0.80.6",
+    "@earendil-works/pi-coding-agent": "0.80.6",
+    "@earendil-works/pi-tui": "0.80.6",
+    "tsx": "4.23.1",
+    "typescript": "7.0.2",
+    "@types/node": "26.1.1"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}
