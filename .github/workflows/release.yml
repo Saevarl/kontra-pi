@@ -1,0 +1,41 @@
+name: release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'Saevarl/kontra-pi'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          registry-url: https://registry.npmjs.org
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm install --global npm@11.18.0
+      - run: python -m pip install "kontra>=0.13.0"
+      - run: npm ci --ignore-scripts
+      - name: Verify release tag
+        run: node -e 'const version=require("./package.json").version; if (process.env.GITHUB_REF_NAME !== `v${version}`) throw new Error(`tag ${process.env.GITHUB_REF_NAME} does not match v${version}`)'
+      - run: npm run check
+        env:
+          KONTRA_PYTHON: python
+      - run: npm run smoke:package
+        env:
+          PYTHON: python
+      - run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

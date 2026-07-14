@@ -103,6 +103,19 @@ def profile_relationship(*args, on=None, left_on=None, right_on=None, sample_lim
 
 def list_datasources(): return {"pg": ["users", "orders"], "lake": ["users"]}
 
+def list_rules():
+    return [{"name": "range", "description": "Require inclusive bounds.", "params": {"column": "required"}, "scope": "column"}]
+
+def describe_rule(name):
+    if name != "range": raise ValueError(f"Unknown Kontra rule {name!r}")
+    return {
+        "name": "range", "scope": "column", "summary": "Require inclusive bounds.",
+        "fails_when": "Outside bounds or NULL.", "nulls": "NULL fails.",
+        "counting": "One per row.", "supports_tally": True,
+        "parameters": [{"name": "column", "type": "string", "required": True, "description": "Column."}],
+        "example": "- name: range\\n  params: { column: age, min: 0 }",
+    }
+
 def health():
     return {"version": "1.2.3", "status": "ok", "config_path": ".kontra/config.yml", "rule_count": 18}
 
@@ -154,6 +167,11 @@ def profile_diff(source, since=None): return None
   assert.equal(sources.ok, true);
   assert.equal(sources.summary, "SOURCES: 2 datasources, 3 tables\n  lake: users\n  pg: users, orders");
   assert.equal(run({ operation: "doctor" }).result?.datasource_count, 2);
+  assert.match(run({ operation: "rules" }).summary, /RULES: 1 built-ins/);
+  const rule = run({ operation: "rules", rule: "range" });
+  assert.equal(rule.result?.name, "range");
+  assert.match(rule.summary, /nulls: NULL fails/);
+  assert.match(rule.summary, /contract:\n- name: range/);
   assert.equal(run({ operation: "check", contract: "contract.yml" }).result?.valid, true);
   const targeted = run({ operation: "validate", contract: "contract.yml", only: ["unique"] });
   assert.deepEqual(targeted.result?.only, ["unique"]);
@@ -206,6 +224,13 @@ rules:
   const check = run({ operation: "check", contract: "contract.yml" });
   assert.equal(check.ok, true);
   assert.equal(check.result?.valid, true);
+
+  const rules = run({ operation: "rules" });
+  assert.equal(rules.ok, true);
+  assert.equal((rules.result?.rules as unknown[]).length, 18);
+  const unique = run({ operation: "rules", rule: "unique" });
+  assert.equal(unique.ok, true);
+  assert.match(unique.summary, /NULL values are ignored/);
 
   const targeted = run({ operation: "validate", contract: "contract.yml", only: ["not_null"], save: false });
   assert.equal(targeted.ok, true);

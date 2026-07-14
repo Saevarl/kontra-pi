@@ -15,8 +15,10 @@ const Parameters = Type.Object({
     Type.Literal("validate"), Type.Literal("profile"), Type.Literal("check"),
     Type.Literal("explain"), Type.Literal("diff"), Type.Literal("profile_diff"),
     Type.Literal("compare"), Type.Literal("profile_compare"),
-    Type.Literal("relationship"), Type.Literal("sources"), Type.Literal("doctor"),
-  ], { description: "Measurement to run" }),
+    Type.Literal("relationship"), Type.Literal("rules"),
+    Type.Literal("sources"), Type.Literal("doctor"),
+  ], { description: "Measurement or inspection to run" }),
+  rule: Type.Optional(Type.String({ description: "Built-in rule name for an exact rules lookup; omit for the compact index" })),
   contract: Type.Optional(Type.String({ description: "Contract path for validate, check, explain, or diff" })),
   source: Type.Optional(Type.String({ description: "File, URI, or named datasource" })),
   before: Type.Optional(Type.String()),
@@ -44,7 +46,7 @@ function validateShape(request: KontraRequest): void {
     validate: ["contract"], profile: ["source"], check: ["contract"],
     explain: ["contract"], diff: ["contract"], profile_diff: ["source"],
     compare: ["before", "after"], profile_compare: ["before", "after"],
-    relationship: ["left", "right"], sources: [], doctor: [],
+    relationship: ["left", "right"], rules: [], sources: [], doctor: [],
   };
   const missing = required[request.operation].filter((key) => !request[key]);
   if (missing.length) throw new Error(`${request.operation} requires ${missing.join(", ")}`);
@@ -163,11 +165,12 @@ export default function kontraPi(pi: ExtensionAPI) {
   pi.registerTool({
     name: "kontra",
     label: "Kontra",
-    description: "Run one bounded Kontra measurement: discover sources, check or explain a contract, validate or profile data, inspect saved drift, compare transformation stages, or profile a join relationship. Uses the project's Python environment. Probes measure effects; they do not judge correctness.",
+    description: "Run one bounded Kontra measurement or inspection: discover exact built-in rule semantics and sources, check or explain a contract, validate or profile data, inspect saved drift, compare transformation stages, or profile a join relationship. Uses the project's Python environment. Probes measure effects; they do not judge correctness.",
     promptSnippet: "Measure data quality and transformation effects with Kontra",
     promptGuidelines: [
       "Use kontra before and after data transformations when row/key behavior is uncertain.",
       "Never modify or weaken a contract merely to make a failed kontra measurement pass.",
+      "Before drafting an unfamiliar contract rule, inspect it with operation rules and its rule name; never invent thresholds or business policy.",
       "With kontra, prefer sample 0; request bounded samples only when counts are insufficient to explain a failure.",
     ],
     parameters: Parameters,
@@ -196,7 +199,7 @@ export default function kontraPi(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("kontra", {
-    description: "Show Kontra status, sources, diagnostics, or run the completion gate",
+    description: "Show Kontra status, rules, sources, diagnostics, or run the completion gate",
     getArgumentCompletions: (prefix) => KONTRA_COMMANDS
       .filter((value) => value.startsWith(prefix))
       .map((value) => ({ value, label: value })),
@@ -211,10 +214,10 @@ export default function kontraPi(pi: ExtensionAPI) {
         return;
       }
       if (command === "help") {
-        ctx.ui.notify("/kontra status | sources | doctor | gate  •  LLM tool: kontra", "info");
+        ctx.ui.notify("/kontra status | rules | sources | doctor | gate  •  LLM tool: kontra", "info");
         return;
       }
-      if (command === "sources" || command === "doctor") {
+      if (command === "rules" || command === "sources" || command === "doctor") {
         const details = await execute({ operation: command }, ctx, ctx.signal);
         ctx.ui.notify(details.summary, details.result?.status === "config_not_found" ? "warning" : "info");
         return;

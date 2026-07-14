@@ -8,11 +8,13 @@ export type Operation =
   | "compare"
   | "profile_compare"
   | "relationship"
+  | "rules"
   | "sources"
   | "doctor";
 
 export interface KontraRequest {
   operation: Operation;
+  rule?: string;
   contract?: string;
   source?: string;
   before?: string;

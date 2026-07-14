@@ -35,5 +35,6 @@ test("gate output retains contract identity", () => {
 test("unknown slash arguments do not collapse to status", () => {
   assert.equal(parseKontraCommand(""), "status");
   assert.equal(parseKontraCommand("doctor"), "doctor");
+  assert.equal(parseKontraCommand("rules"), "rules");
   assert.equal(parseKontraCommand("wat"), undefined);
 });

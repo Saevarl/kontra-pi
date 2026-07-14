@@ -162,6 +162,45 @@ def _run(request: dict[str, Any]) -> Any:
     import kontra
 
     operation = request.get("operation")
+    if operation == "rules":
+        rule_name = request.get("rule")
+        if rule_name:
+            if not hasattr(kontra, "describe_rule"):
+                raise RuntimeError(
+                    "Exact rule details require a newer Kontra release; upgrade the project's Kontra package."
+                )
+            detail = kontra.describe_rule(rule_name)
+            parameters = []
+            for parameter in detail["parameters"]:
+                requirement = "required" if parameter["required"] else f"default {parameter.get('default')!r}"
+                constraints = f"; {parameter['constraints']}" if parameter.get("constraints") else ""
+                parameters.append(
+                    f"  {parameter['name']}: {parameter['type']} ({requirement}{constraints})"
+                    f" — {parameter['description']}"
+                )
+            notes = [f"note: {note}" for note in detail.get("notes", [])]
+            summary = "\n".join([
+                f"RULE: {detail['name']} [{detail['scope']}]",
+                detail["summary"],
+                f"fails: {detail['fails_when']}",
+                f"nulls: {detail['nulls']}",
+                f"counting: {detail['counting']}",
+                f"tally: {'supported' if detail['supports_tally'] else 'not supported'}",
+                "params:",
+                *parameters,
+                *notes,
+                "entry: name + params; optional id, severity, tally, context",
+                "contract:",
+                detail["example"],
+            ])
+            return _BridgeResult(summary, detail)
+        rules = kontra.list_rules()
+        lines = [f"RULES: {len(rules)} built-ins"]
+        lines.extend(
+            f"  {rule['name']} [{rule['scope']}]: {rule['description']}"
+            for rule in rules
+        )
+        return _BridgeResult("\n".join(lines), {"rules": rules})
     if operation == "sources":
         datasources = kontra.list_datasources()
         table_count = sum(len(tables) for tables in datasources.values())

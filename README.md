@@ -13,8 +13,9 @@
 </p>
 
 One tool connects [Pi](https://pi.dev) to [Kontra](https://kontrakit.io):
-discover sources, validate contracts, profile data, inspect execution plans,
-compare transformations, measure relationships, and track drift.
+discover sources and exact rule semantics, validate contracts, profile data,
+inspect execution plans, compare transformations, measure relationships, and
+track drift.
 
 No server. No MCP configuration. One short-lived Python process per
 measurement.
@@ -25,7 +26,7 @@ Install Kontra in the Python environment used by your project, then install the
 Pi package from GitHub:
 
 ```bash
-pip install kontra
+pip install "kontra>=0.13.0"
 pi install git:github.com/Saevarl/kontra-pi
 ```
 
@@ -39,12 +40,14 @@ Inside Pi:
 
 ```text
 > What data sources does Kontra know about?
+> Write a contract for warehouse.users. Inspect every rule you use first.
 > Explain how contracts/users.yml will execute.
 > Validate contracts/users.yml.
 > Compare raw.users and warehouse.users on user_id.
 ```
 
 Run `/kontra doctor` if Pi cannot find the intended Python environment.
+Exact rule lookups require Kontra 0.13.0 or newer.
 
 ## What it adds
 
@@ -52,7 +55,7 @@ The model receives one `kontra` tool with a small operation field:
 
 | Need | Operations |
 |---|---|
-| Discover | `sources`, `doctor` |
+| Discover | `rules`, `sources`, `doctor` |
 | Contracts | `check`, `explain`, `validate` |
 | Profiles | `profile`, `profile_compare`, `profile_diff` |
 | History | `diff` |
@@ -66,6 +69,9 @@ kontra validate contracts/events.yml
 
 kontra compare raw.users → warehouse.users
 Δ 5→5 rows · 0 dropped · 0 added · 3 changed
+
+kontra rules unique
+◆ unique · column
 ```
 
 Expand a result to see Kontra's semantic summary, the Python executable, and
@@ -76,6 +82,7 @@ The human-facing slash command stays equally small:
 
 ```text
 /kontra status
+/kontra rules
 /kontra sources
 /kontra doctor
 /kontra gate
@@ -122,6 +129,18 @@ See [configuration](docs/configuration.md) for every setting,
 
 Exact counts cost more. Pi asks for `tally` or bounded samples only when the
 next decision needs them.
+
+## Contract authoring
+
+Kontra owns the rule reference, so Pi reads the catalog from the installed
+version instead of carrying a stale copy. A compact `rules` call lists the
+built-ins; a named lookup returns exact parameters, inclusive boundaries, NULL
+behavior, counting semantics, tally support, and valid YAML.
+
+Pi can then write a requested contract with its normal file tools and run
+`check`, `explain`, and `validate`. The extension supplies mechanics, not
+policy: it does not choose thresholds, allowed values, severity, or freshness
+windows for you.
 
 ## Why a native package?
 

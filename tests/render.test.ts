@@ -87,6 +87,21 @@ test("uses concise Pi-native activity and status text", () => {
   ].join("\n"));
 });
 
+test("renders the rule index and one rule without dumping the catalog", () => {
+  const index = resultPresentation(details(
+    { operation: "rules" },
+    { rules: [{ name: "range" }, { name: "unique" }] },
+  ));
+  assert.equal(index.headline, "2 built-in rules");
+  assert.equal(activityLabel({ operation: "rules", rule: "unique" }), "reading unique");
+
+  const rule = resultPresentation(details(
+    { operation: "rules", rule: "unique" },
+    { name: "unique", scope: "column" },
+  ));
+  assert.equal(rule.headline, "unique · column");
+});
+
 test("highlights profile drift without calling it a failure", () => {
   const drift = resultPresentation(details(
     { operation: "profile_compare", before: "a", after: "b" },

@@ -14,6 +14,7 @@ There is one LLM tool: `kontra`.
 Its operation selects one bounded measurement or inspection:
 
 - `sources` — list configured datasource and table names without credentials
+- `rules` — inspect the compact built-in index or one exact rule specification
 - `doctor` — report the local Kontra/Python/config integration
 - `check` — validate contract syntax without reading data
 - `explain` — preview metadata, SQL, and Polars execution tiers
@@ -37,7 +38,7 @@ resolved by the bridge. It never substitutes a truncated JSON dump for a view.
 SQL Server is reported as `mssql`, matching Kontra's datasource type and URI
 scheme; `sqlserver://` remains an accepted alias.
 
-The `/kontra` command handles human-invoked status, datasource discovery,
+The `/kontra` command handles human-invoked status, rule and datasource discovery,
 diagnostics, help, and gate runs. It is not a second API.
 
 ## Execution
@@ -90,7 +91,9 @@ after a newly dirty run, preventing a self-sustaining retry loop.
 
 - Reimplementing Kontra in TypeScript
 - Managing credentials
-- Generating or weakening contracts
+- Mutating contracts through the Kontra tool (Pi may draft requested contracts
+  with normal file tools after inspecting the live catalog)
+- Choosing thresholds or business policy
 - Mutating history annotations
 - Recommending transformations
 - Hosting state or orchestration

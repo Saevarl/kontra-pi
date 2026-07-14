@@ -14,7 +14,7 @@ npm run check
 Kontra must be importable for the live bridge test:
 
 ```bash
-python -m pip install kontra
+python -m pip install "kontra>=0.13.0"
 export KONTRA_PYTHON="$(command -v python)"
 ```
 
@@ -31,6 +31,10 @@ pi -e .
 - `bridge/bridge.py` maps the protocol to Kontra's public Python API.
 - `extensions/render.ts` contains presentation only.
 - `skills/kontra/SKILL.md` teaches the model when and how to measure.
+
+Rule semantics belong to Kontra's Python catalog. Do not mirror them in the
+extension or skill; the `rules` operation must stay a thin, version-matched
+view over the installed library.
 
 ## Pull requests
 

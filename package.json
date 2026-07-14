@@ -1,7 +1,7 @@
 {
   "name": "kontra-pi",
   "version": "0.1.0",
-  "description": "Native Kontra data-quality probes for Pi",
+  "description": "Native Kontra data-quality checks, contracts, profiles, and transformation probes for Pi",
   "homepage": "https://github.com/Saevarl/kontra-pi#readme",
   "repository": {
     "type": "git",
@@ -17,7 +17,10 @@
     "pi-coding-agent",
     "kontra",
     "data-quality",
-    "data-engineering"
+    "data-engineering",
+    "data-contracts",
+    "postgresql",
+    "parquet"
   ],
   "files": [
     "bridge/bridge.py",
@@ -25,6 +28,7 @@
     "skills/kontra/SKILL.md",
     "examples/kontra.json",
     "assets/*.svg",
+    "assets/*.png",
     "docs/*.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -35,22 +39,27 @@
   ],
   "pi": {
     "extensions": ["./extensions/index.ts"],
-    "skills": ["./skills"]
+    "skills": ["./skills"],
+    "image": "https://raw.githubusercontent.com/Saevarl/kontra-pi/main/assets/gallery-preview.png"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "test": "node --import tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test"
+    "check": "npm run typecheck && npm test",
+    "smoke:package": "scripts/smoke-package.sh"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-coding-agent": ">=0.80.0",
+    "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-tui": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-ai": "0.80.6",
-    "@earendil-works/pi-coding-agent": "0.80.6",
-    "@earendil-works/pi-tui": "0.80.6",
+    "@earendil-works/pi-ai": "0.80.7",
+    "@earendil-works/pi-coding-agent": "0.80.7",
+    "@earendil-works/pi-tui": "0.80.7",
     "tsx": "4.23.1",
     "typescript": "7.0.2",
     "@types/node": "26.1.1"

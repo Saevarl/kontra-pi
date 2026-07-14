@@ -37,6 +37,7 @@ function subject(request: KontraRequest): string {
   if (["profile", "profile_diff"].includes(request.operation)) return request.source ?? "?";
   if (["compare", "profile_compare"].includes(request.operation)) return `${request.before ?? "?"} → ${request.after ?? "?"}`;
   if (request.operation === "relationship") return `${request.left ?? "?"} ↔ ${request.right ?? "?"}`;
+  if (request.operation === "rules") return request.rule ?? "built-ins";
   return request.operation === "sources" ? "configured names" : "environment";
 }
 
@@ -50,6 +51,7 @@ export function activityLabel(request: KontraRequest): string {
   if (request.operation === "compare") return `comparing ${request.before ?? "before"} → ${request.after ?? "after"}`;
   if (request.operation === "profile_compare") return `comparing profiles ${request.before ?? "before"} → ${request.after ?? "after"}`;
   if (request.operation === "relationship") return `measuring ${request.left ?? "left"} ↔ ${request.right ?? "right"}`;
+  if (request.operation === "rules") return request.rule ? `reading ${request.rule}` : "listing rules";
   if (request.operation === "sources") return "listing sources";
   return "checking setup";
 }
@@ -114,6 +116,16 @@ export function resultPresentation(details: ToolDetails): ResultPresentation {
     const datasources = record(result.datasources);
     const tables = Object.values(datasources).reduce<number>((total, value) => total + count(value), 0);
     return { tone: "accent", mark: "◆", headline: `${Object.keys(datasources).length} datasources · ${tables} tables` };
+  }
+  if (details.operation === "rules") {
+    const named = typeof result.name === "string";
+    return {
+      tone: "accent",
+      mark: "◆",
+      headline: named
+        ? `${String(result.name)} · ${String(result.scope ?? "unknown")}`
+        : `${count(result.rules)} built-in rules`,
+    };
   }
   if (details.operation === "explain") {
     const tiers = record(result.summary);
