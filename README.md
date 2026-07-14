@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/Saevarl/kontra-pi/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Saevarl/kontra-pi/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2743F0"></a>
+  <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-2743F0"></a>
   <a href="https://pi.dev"><img alt="Pi 0.80+" src="https://img.shields.io/badge/Pi-0.80%2B-111318"></a>
 </p>
 
@@ -161,4 +161,4 @@ The bridge protocol is deliberately plain JSON over stdin/stdout. Start with
 
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)

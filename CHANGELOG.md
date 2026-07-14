@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 — MIT license
+
+- Relicense `kontra-pi` under the MIT License. Kontra itself remains Apache-2.0.
+
 ## 0.1.0 — first public release
 
 - Add native validate, profile, history, transformation, and relationship operations.

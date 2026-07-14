@@ -1,6 +1,6 @@
 {
   "name": "kontra-pi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Native Kontra data-quality checks, contracts, profiles, and transformation probes for Pi",
   "homepage": "https://github.com/Saevarl/kontra-pi#readme",
   "repository": {
@@ -11,7 +11,7 @@
     "url": "https://github.com/Saevarl/kontra-pi/issues"
   },
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "keywords": [
     "pi-package",
     "pi-coding-agent",
