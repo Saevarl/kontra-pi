@@ -31,31 +31,9 @@ known. Do not use a narrow validation to claim the entire contract passed.
 
 ## Author contracts without guessing
 
-When the user asks for a contract, or the task explicitly requires one:
-
-1. Use `sources`, then `profile` the intended datasource.
-2. Use `rules` without `rule` for the compact index.
-3. Call `rules` with `rule` for every unfamiliar rule before writing it. Treat
-   the returned parameters, NULL behavior, counting semantics, and YAML as the
-   version-matched source of truth.
-4. Write the contract with Pi's normal file tools.
-5. Run `check`, then `explain`, then `validate` when data access is intended.
-
-Do not invent thresholds, allowed values, severity, freshness windows, or other
-business policy. Take them from the user's request or established project
-artifacts; otherwise ask. Use `custom_sql_check` only when the user explicitly
-needs behavior the built-ins cannot express.
-
-A contract file uses this envelope; insert the exact rule entry returned by
-`rules` under `rules:`:
-
-```yaml
-name: users
-datasource: warehouse.users
-rules:
-  - name: not_null
-    params: { column: user_id }
-```
+Before creating or editing a contract, read
+[the contract reference](references/contracts.md). Use `rules` for the exact,
+version-matched semantics of every unfamiliar rule.
 
 ## Cost discipline
 

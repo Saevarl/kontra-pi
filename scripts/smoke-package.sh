@@ -15,6 +15,7 @@ mkdir "$WORK/project"
 cd "$WORK/project"
 npm init --yes >/dev/null
 npm install --quiet --ignore-scripts "$WORK/$TARBALL"
+test -f node_modules/kontra-pi/skills/kontra/references/contracts.md
 
 PI_CODING_AGENT_DIR="$WORK/pi-home" \
   KONTRA_PYTHON="$WORK/venv/bin/python" \

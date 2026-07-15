@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { activityLabel, executionProvenance, expandedDetails, resultPresentation, statusSummary } from "../extensions/render.js";
+import {
+  activityLabel,
+  executionProvenance,
+  expandedDetails,
+  expandedLineTone,
+  resultPresentation,
+  statusSummary,
+} from "../extensions/render.js";
 import type { KontraRequest, ToolDetails } from "../extensions/types.js";
 
 function details(request: KontraRequest, result: Record<string, unknown>): ToolDetails {
@@ -10,18 +17,45 @@ function details(request: KontraRequest, result: Record<string, unknown>): ToolD
 test("renders failed validation as a failure", () => {
   const presentation = resultPresentation(details(
     { operation: "validate", contract: "users.yml" },
-    { passed: false, total_rules: 8, failed_count: 2, warning_count: 1, total_rows: 50 },
+    { passed: false, total_rules: 8, passed_count: 5, failed_count: 2, warning_count: 1, total_rows: 50 },
   ));
   assert.equal(presentation.tone, "error");
   assert.equal(presentation.mark, "✗");
-  assert.match(presentation.headline, /2\/8 failed/);
+  assert.equal(presentation.headline, "5/8 rules passed · 2 blocking failures · 1 warning · 50 rows");
 
   const passed = resultPresentation(details(
     { operation: "validate", contract: "users.yml" },
-    { passed: true, total_rules: 8, failed_count: 0, warning_count: 0, total_rows: 50 },
+    { passed: true, total_rules: 8, passed_count: 8, failed_count: 0, warning_count: 0, total_rows: 50 },
   ));
   assert.equal(passed.tone, "success");
   assert.equal(passed.mark, "✓");
+  assert.equal(passed.headline, "8/8 rules passed · 50 rows");
+});
+
+test("distinguishes non-blocking validation severities", () => {
+  const warning = resultPresentation(details(
+    { operation: "validate", contract: "users.yml" },
+    {
+      passed: true, total_rules: 8, passed_count: 7, failed_count: 0,
+      total_rows: 50,
+      rules: [{ passed: false, severity: "warning" }],
+    },
+  ));
+  assert.equal(warning.tone, "warning");
+  assert.equal(warning.mark, "!");
+  assert.equal(warning.headline, "7/8 rules passed · 1 warning · 50 rows");
+
+  const info = resultPresentation(details(
+    { operation: "validate", contract: "users.yml" },
+    {
+      passed: true, total_rules: 8, passed_count: 7, failed_count: 0,
+      warning_count: 0, total_rows: 50,
+      rules: [{ passed: false, severity: "info" }],
+    },
+  ));
+  assert.equal(info.tone, "accent");
+  assert.equal(info.mark, "◆");
+  assert.equal(info.headline, "7/8 rules passed · 1 info · 50 rows");
 });
 
 test("flags probe changes without calling them failures", () => {
@@ -71,6 +105,16 @@ test("shows concrete execution provenance only in expanded details", () => {
     "execution: metadata, postgres, mssql, clickhouse, polars",
     "python: /project/.venv/bin/python",
   ]);
+});
+
+test("colors expanded validation semantics without adding output", () => {
+  assert.equal(expandedLineTone("VALIDATION: users FAILED", true), "dim");
+  assert.equal(expandedLineTone("BLOCKING: COL:id:not_null", true), "error");
+  assert.equal(expandedLineTone("WARNING: COL:email:unique", true), "warning");
+  assert.equal(expandedLineTone("INFO: DATASET:min_rows", true), "accent");
+  assert.equal(expandedLineTone("CONTEXT: owner=identity", true), "muted");
+  assert.equal(expandedLineTone("  ... +2 more rules with context", true), "muted");
+  assert.equal(expandedLineTone("execution: postgres", false), "muted");
 });
 
 test("uses concise Pi-native activity and status text", () => {

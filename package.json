@@ -26,6 +26,7 @@
     "bridge/bridge.py",
     "extensions/*.ts",
     "skills/kontra/SKILL.md",
+    "skills/kontra/references/*.md",
     "examples/kontra.json",
     "assets/*.svg",
     "assets/*.png",

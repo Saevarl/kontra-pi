@@ -3,6 +3,7 @@ import type { Theme } from "@earendil-works/pi-coding-agent";
 import type { KontraRequest, ToolDetails } from "./types.js";
 
 type Tone = "success" | "error" | "warning" | "accent";
+type ExpandedTone = Tone | "dim" | "muted";
 
 export interface ResultPresentation {
   tone: Tone;
@@ -32,6 +33,18 @@ function count(value: unknown): number {
   return Array.isArray(value) ? value.length : 0;
 }
 
+function failedRules(result: Record<string, unknown>, severity: string): number {
+  if (!Array.isArray(result.rules)) return 0;
+  return result.rules.filter((value) => {
+    const rule = record(value);
+    return rule.passed === false && rule.severity === severity;
+  }).length;
+}
+
+function label(value: number, singular: string, plural = `${singular}s`): string {
+  return `${value} ${value === 1 ? singular : plural}`;
+}
+
 function subject(request: KontraRequest): string {
   if (["validate", "check", "explain", "diff"].includes(request.operation)) return request.contract ?? "?";
   if (["profile", "profile_diff"].includes(request.operation)) return request.source ?? "?";
@@ -59,13 +72,21 @@ export function activityLabel(request: KontraRequest): string {
 function validationPresentation(result: Record<string, unknown>): ResultPresentation {
   const passed = result.passed !== false;
   const total = number(result.total_rules) ?? 0;
-  const failed = number(result.failed_count) ?? 0;
-  const warnings = number(result.warning_count) ?? 0;
+  const blocking = number(result.failed_count) ?? failedRules(result, "blocking");
+  const warnings = number(result.warning_count) ?? failedRules(result, "warning");
+  const info = number(result.info_count) ?? failedRules(result, "info");
+  const passedRules = number(result.passed_count) ?? Math.max(total - blocking - warnings - info, 0);
   const rows = number(result.total_rows);
-  const rules = passed ? `${total - failed}/${total} passed` : `${failed}/${total} failed`;
-  const suffix = [warnings ? `${warnings} warning${warnings === 1 ? "" : "s"}` : "", rows !== undefined ? `${rows.toLocaleString()} rows` : ""]
+  const suffix = [
+    blocking ? label(blocking, "blocking failure") : "",
+    warnings ? label(warnings, "warning") : "",
+    info ? label(info, "info", "info") : "",
+    rows !== undefined ? `${rows.toLocaleString()} rows` : "",
+  ]
     .filter(Boolean).join(" · ");
-  return { tone: passed ? "success" : "error", mark: passed ? "✓" : "✗", headline: `${rules}${suffix ? ` · ${suffix}` : ""}` };
+  const tone = !passed ? "error" : warnings ? "warning" : info ? "accent" : "success";
+  const mark = !passed ? "✗" : warnings ? "!" : info ? "◆" : "✓";
+  return { tone, mark, headline: `${passedRules}/${total} rules passed${suffix ? ` · ${suffix}` : ""}` };
 }
 
 export function resultPresentation(details: ToolDetails): ResultPresentation {
@@ -196,6 +217,15 @@ export function expandedDetails(details: ToolDetails): string[] {
   return lines;
 }
 
+export function expandedLineTone(line: string, summary: boolean): ExpandedTone {
+  if (!summary) return "muted";
+  if (line.startsWith("BLOCKING:")) return "error";
+  if (line.startsWith("WARNING:")) return "warning";
+  if (line.startsWith("INFO:")) return "accent";
+  if (line.startsWith("CONTEXT:") || line.startsWith("ANNOTATIONS ") || line.startsWith("  ")) return "muted";
+  return "dim";
+}
+
 export function statusSummary(details: ToolDetails, gateEnabled: boolean, contractCount: number): string {
   const result = record(details.result);
   return [
@@ -228,7 +258,8 @@ export function renderResult(details: ToolDetails | undefined, expanded: boolean
   if (details.runtimeMs !== undefined) text += theme.fg("dim", `  ${details.runtimeMs}ms`);
   if (expanded) {
     const lines = expandedDetails(details);
-    text += `\n${lines.map((line, index) => theme.fg(index < details.summary.split("\n").length ? "dim" : "muted", line)).join("\n")}`;
+    const summaryLines = details.summary.split("\n").length;
+    text += `\n${lines.map((line, index) => theme.fg(expandedLineTone(line, index < summaryLines), line)).join("\n")}`;
   }
   return new Text(text, 0, 0);
 }
