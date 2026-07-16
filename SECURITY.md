@@ -17,11 +17,20 @@ Within that trust model, the extension narrows its own surface:
 - samples default to zero;
 - output is capped at 2 MiB;
 - timeouts and cancellation terminate the child process;
-- common key/value and URI credentials are redacted from errors;
+- Kontra responses are recursively redacted, including successful summaries and
+  structured results;
+- Pi tool-result and final-context hooks scrub common credential forms and exact
+  values from credential-named environment variables before model calls;
 - no arbitrary Python, SQL, or inline rules are accepted.
 
 The completion gate is disabled by default and never weakens contracts or
 creates an unbounded retry loop.
+
+Redaction covers URI userinfo, secret query parameters, authorization and API-key
+headers, common key/value forms, private keys, several provider token formats,
+JWTs, sensitive structured fields, and exact environment credential values. It
+is defense in depth, not a substitute for isolation: unknown credential formats
+or secrets already transformed by another process may not be recognizable.
 
 ## Reporting a vulnerability
 

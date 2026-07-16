@@ -117,7 +117,11 @@ def describe_rule(name):
     }
 
 def health():
-    return {"version": "1.2.3", "status": "ok", "config_path": ".kontra/config.yml", "rule_count": 18}
+    return {
+        "version": "1.2.3", "status": "ok", "config_path": ".kontra/config.yml", "rule_count": 18,
+        "password": "structured-secret",
+        "note": "Authorization: Bearer header-secret; opaque-env-secret",
+    }
 
 def validate(*args, contract=None, dry_run=False, only=None, columns=None, **kwargs):
     if dry_run:
@@ -135,11 +139,11 @@ def compare_profiles(*args, preset="scan", columns=None):
 def profile_diff(source, since=None): return None
 `);
 
-  const run = (request: Record<string, unknown>) => {
+  const run = (request: Record<string, unknown>, extraEnv: Record<string, string> = {}) => {
     const result = spawnSync(python!, [bridge], {
       input: JSON.stringify(request),
       encoding: "utf8",
-      env: { ...process.env, PYTHONPATH: fakeModule },
+      env: { ...process.env, PYTHONPATH: fakeModule, ...extraEnv },
     });
     return JSON.parse(result.stdout) as {
       ok: boolean;
@@ -166,7 +170,11 @@ def profile_diff(source, since=None): return None
   const sources = run({ operation: "sources" });
   assert.equal(sources.ok, true);
   assert.equal(sources.summary, "SOURCES: 2 datasources, 3 tables\n  lake: users\n  pg: users, orders");
-  assert.equal(run({ operation: "doctor" }).result?.datasource_count, 2);
+  const doctor = run({ operation: "doctor" }, { TEST_SERVICE_TOKEN: "opaque-env-secret" });
+  assert.equal(doctor.result?.datasource_count, 2);
+  assert.equal(doctor.result?.password, "[redacted]");
+  assert.equal(JSON.stringify(doctor).includes("header-secret"), false);
+  assert.equal(JSON.stringify(doctor).includes("opaque-env-secret"), false);
   assert.match(run({ operation: "rules" }).summary, /RULES: 1 built-ins/);
   const rule = run({ operation: "rules", rule: "range" });
   assert.equal(rule.result?.name, "range");

@@ -3,16 +3,54 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import time
 from typing import Any
 
 
-_SECRET = re.compile(
-    r"(?i)(password|passwd|pwd|secret|token|api[_-]?key)(\s*[=:]\s*)([^\s,;]+)"
-)
 _URI_USERINFO = re.compile(r"(?i)([a-z][a-z0-9+.-]*://)([^/@\s]+)@")
+_AUTHORIZATION = re.compile(
+    r"(?i)\b((?:proxy-)?authorization\s*:\s*)(?:bearer|basic|digest)\s+[^\s,;]+"
+)
+_SECRET_HEADER = re.compile(
+    r"(?i)\b((?:x-api-key|api-key|x-auth-token|set-cookie|cookie)\s*:\s*)[^\r\n]+"
+)
+_SECRET = re.compile(
+    r'''(?ix)\b
+    (password|passwd|pwd|secret|client[_-]?secret|token|access[_-]?token|
+     refresh[_-]?token|id[_-]?token|session[_-]?token|api[_-]?key|
+     access[_-]?key|secret[_-]?access[_-]?key|account[_-]?key|
+     private[_-]?key|credential|connection[_-]?string|sig|signature|sas)
+    (\s*[=:]\s*)
+    (?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;&]+)'''
+)
+_SECRET_QUERY = re.compile(
+    r"(?i)([?&](?:sig|signature|token|access_token|refresh_token|id_token|sas|"
+    r"password|pass|secret|key|credential|x-amz-signature|x-amz-credential)=)"
+    r"[^&\s'\";]+"
+)
+_PRIVATE_KEY = re.compile(
+    r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
+    re.DOTALL,
+)
+_AWS_ACCESS_KEY = re.compile(r"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b")
+_PROVIDER_TOKEN = re.compile(
+    r"\b(?:gh[opusr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|"
+    r"xox[baprs]-[A-Za-z0-9-]{10,}|sk-(?:proj-)?[A-Za-z0-9_-]{20,})\b"
+)
+_JWT = re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b")
+_SENSITIVE_ENV = re.compile(
+    r"(?:^|_)(?:PASSWORD|PASSWD|PWD|SECRET|TOKEN|API_KEY|ACCESS_KEY|PRIVATE_KEY|CREDENTIAL)(?:$|_)",
+    re.I,
+)
+_SENSITIVE_KEY = re.compile(
+    r"^(?:password|passwd|pwd|secret|client_secret|token|access_token|refresh_token|"
+    r"id_token|session_token|api_key|access_key|access_key_id|secret_access_key|"
+    r"account_key|private_key|authorization|proxy_authorization|credential|credentials|"
+    r"connection_string|sig|signature|sas|cookie|set_cookie)$"
+)
 
 
 class _BridgeResult:
@@ -29,14 +67,58 @@ class _BridgeResult:
         return self.summary
 
 
-def _redact(value: str) -> str:
+def _environment_secrets() -> list[str]:
+    return sorted(
+        {
+            value
+            for name, value in os.environ.items()
+            if name not in {"PWD", "OLDPWD"}
+            and _SENSITIVE_ENV.search(name)
+            and len(value) >= 4
+        },
+        key=len,
+        reverse=True,
+    )
+
+
+def _redact(value: str, exact_secrets: list[str] | None = None) -> str:
     def redact_userinfo(match: re.Match[str]) -> str:
         scheme, userinfo = match.groups()
         user, separator, _password = userinfo.partition(":")
         return f"{scheme}{user}:***@" if separator else f"{scheme}***@"
 
+    value = _PRIVATE_KEY.sub("[redacted private key]", value)
     value = _URI_USERINFO.sub(redact_userinfo, value)
-    return _SECRET.sub(r"\1\2[redacted]", value)[:4000]
+    value = _AUTHORIZATION.sub(r"\1[redacted]", value)
+    value = _SECRET_HEADER.sub(r"\1[redacted]", value)
+    value = _SECRET_QUERY.sub(r"\1[redacted]", value)
+    value = _SECRET.sub(r"\1\2[redacted]", value)
+    value = _AWS_ACCESS_KEY.sub("[redacted access key]", value)
+    value = _PROVIDER_TOKEN.sub("[redacted token]", value)
+    value = _JWT.sub("[redacted token]", value)
+    for secret in exact_secrets if exact_secrets is not None else _environment_secrets():
+        value = value.replace(secret, "[redacted]")
+    return value
+
+
+def _sensitive_key(key: str) -> bool:
+    normalized = re.sub(r"[^a-z0-9]+", "_", key.lower()).strip("_")
+    return bool(_SENSITIVE_KEY.fullmatch(normalized))
+
+
+def _sanitize(value: Any, exact_secrets: list[str] | None = None) -> Any:
+    secrets = exact_secrets if exact_secrets is not None else _environment_secrets()
+    if isinstance(value, str):
+        return _redact(value, secrets)
+    if isinstance(value, dict):
+        return {
+            key: "[redacted]" if _sensitive_key(str(key)) and child is not None
+            else _sanitize(child, secrets)
+            for key, child in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [_sanitize(child, secrets) for child in value]
+    return value
 
 
 def _require(request: dict[str, Any], *names: str) -> None:
@@ -349,6 +431,7 @@ def main() -> int:
             "error": {"type": type(error).__name__, "message": _redact(str(error))},
             "runtimeMs": round((time.perf_counter() - started) * 1000, 1),
         }
+    response = _sanitize(response)
     json.dump(response, sys.stdout, default=str, separators=(",", ":"))
     return 0 if response["ok"] else 1
 

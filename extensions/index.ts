@@ -5,6 +5,7 @@ import { isAbsolute, relative } from "node:path";
 import { assertRequestAllowed, globMatches, loadConfig } from "./config.js";
 import { ActivityStatus } from "./activity.js";
 import { runKontra } from "./bridge.js";
+import { configuredEnvironmentSecrets, sanitize } from "./redact.js";
 import { KONTRA_COMMANDS, parseKontraCommand } from "./commands.js";
 import { activityLabel, gateOutcomeLines, renderCall, renderResult, statusSummary } from "./render.js";
 import { normalizeRequest, type BridgeResponse, type KontraRequest, type ToolDetails } from "./types.js";
@@ -84,6 +85,20 @@ export default function kontraPi(pi: ExtensionAPI) {
   const changed = new Set<string>();
   const activityStatus = new ActivityStatus();
   let gateRunning = false;
+
+  // Tool results are persisted in the transcript. Scrub them at creation, then
+  // scrub the assembled context again to cover older entries and other paths.
+  pi.on("tool_result", (event) => {
+    const credentialValues = configuredEnvironmentSecrets();
+    return {
+      content: sanitize(event.content, credentialValues),
+      details: sanitize(event.details, credentialValues),
+    };
+  });
+  pi.on("context", (event) => {
+    const credentialValues = configuredEnvironmentSecrets();
+    return { messages: sanitize(event.messages, credentialValues) };
+  });
 
   async function execute(request: KontraRequest, ctx: ExtensionContext, signal?: AbortSignal): Promise<ToolDetails> {
     if (!ctx.isProjectTrusted()) throw new Error("Kontra requires a trusted Pi project");

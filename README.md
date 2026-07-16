@@ -125,6 +125,8 @@ See [configuration](docs/configuration.md) for every setting,
   tool request.
 - Commands use argument arrays with `shell: false`.
 - Timeout, cancellation, and the 2 MiB output limit are distinct failures.
+- Successful and failed results are recursively credential-redacted, with a
+  final context hook as a backstop before model calls.
 - The completion gate is off until a project enables it.
 
 Exact counts cost more. Pi asks for `tally` or bounded samples only when the

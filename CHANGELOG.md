@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.2 — credential redaction
+
+- Recursively redact credentials from successful and failed Kontra responses.
+- Add Pi tool-result and context redaction hooks so credentials from other tool
+  output and older transcript entries are scrubbed before model calls.
+- Cover authorization/API-key headers, signed URL parameters, structured secret
+  fields, private keys, common provider tokens, JWTs, and exact values from
+  credential-named environment variables.
+- Verify compatibility with Kontra 0.14.1; its set-based SQL compare pushdown is
+  used automatically through the existing compare operation.
+
 ## 0.1.1 — MIT license
 
 - Relicense `kontra-pi` under the MIT License. Kontra itself remains Apache-2.0.

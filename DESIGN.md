@@ -68,7 +68,9 @@ packages on the user's behalf.
   policy belong to Kontra's explicit project configuration.
 - Commands use argument arrays, never a shell.
 - Output and samples are bounded. Samples default to zero.
-- Errors are redacted before entering the transcript.
+- The complete bridge response is recursively redacted before entering the
+  transcript. Pi tool-result and context hooks provide a second boundary for
+  other tools and older transcript entries.
 - The extension accepts no arbitrary Python, SQL, or inline rule definitions.
 
 Subprocess termination is explicit: timeout, caller cancellation, and output

@@ -1,6 +1,6 @@
 {
   "name": "kontra-pi",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Native Kontra data-quality checks, contracts, profiles, and transformation probes for Pi",
   "homepage": "https://github.com/Saevarl/kontra-pi#readme",
   "repository": {

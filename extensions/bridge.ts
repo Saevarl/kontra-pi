@@ -3,23 +3,14 @@ import { access } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, isAbsolute, resolve } from "node:path";
 import type { BridgeResponse, KontraConfig, KontraRequest } from "./types.js";
+import { redact, sanitize } from "./redact.js";
+
+export { redact } from "./redact.js";
 
 const BRIDGE = resolve(dirname(fileURLToPath(import.meta.url)), "../bridge/bridge.py");
 export const MAX_OUTPUT = 2 * 1024 * 1024;
 const KILL_GRACE_MS = 1_000;
 const pythonCache = new Map<string, string>();
-
-const SECRET = /(password|passwd|pwd|secret|token|api[_-]?key)(\s*[=:]\s*)([^\s,;]+)/gi;
-const URI_USERINFO = /([a-z][a-z0-9+.-]*:\/\/)([^/@\s]+)@/gi;
-export function redact(value: string): string {
-  return value
-    .replace(URI_USERINFO, (_match, scheme: string, userinfo: string) => {
-      const separator = userinfo.indexOf(":");
-      return separator < 0 ? `${scheme}***@` : `${scheme}${userinfo.slice(0, separator)}:***@`;
-    })
-    .replace(SECRET, "$1$2[redacted]")
-    .slice(0, 4000);
-}
 
 function executable(cwd: string, value: string): string {
   if (value.includes("/") && !isAbsolute(value)) return resolve(cwd, value);
@@ -133,9 +124,10 @@ export async function runKontra(cwd: string, request: KontraRequest, config: Kon
   try {
     response = JSON.parse(processResult.stdout) as BridgeResponse;
   } catch {
-    const detail = redact(processResult.stderr || processResult.stdout || `bridge exited ${processResult.code}`);
+    const detail = redact(processResult.stderr || processResult.stdout || `bridge exited ${processResult.code}`).slice(0, 4000);
     throw new Error(`Kontra bridge returned no valid result: ${detail}`);
   }
-  if (!response.ok) throw new Error(`${response.error?.type ?? "KontraError"}: ${redact(response.summary)}`);
+  response = sanitize(response);
+  if (!response.ok) throw new Error(`${response.error?.type ?? "KontraError"}: ${redact(response.summary).slice(0, 4000)}`);
   return { ...response, python };
 }
